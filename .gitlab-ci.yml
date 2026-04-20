@@ -1,0 +1,40 @@
+# GitLab CI for backend: Ruff in `lint`, pytest in `test`.
+# Stages run in order; if `lint` fails, `test` does not run.
+# View runs: GitLab project → Build → Pipelines (or CI/CD → Pipelines).
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "push"
+
+default:
+  image: python:3.12-slim
+
+variables:
+  UV_CACHE_DIR: $CI_PROJECT_DIR/.cache/uv
+
+stages:
+  - lint
+  - test
+
+.python_uv: &python_uv
+  before_script:
+    - python -m pip install --no-cache-dir uv
+  cache:
+    key:
+      files:
+        - backend/uv.lock
+    paths:
+      - .cache/uv
+
+lint:
+  <<: *python_uv
+  stage: lint
+  script:
+    - cd backend && uv sync --locked --group dev && uv run ruff check .
+
+test:
+  <<: *python_uv
+  stage: test
+  script:
+    - cd backend && uv sync --locked --group dev && uv run pytest -q

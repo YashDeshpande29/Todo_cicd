@@ -1,0 +1,48 @@
+# Backend-only CI: Ruff lint, then pytest (tests run only if lint passes).
+name: Backend CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          python-version: "3.12"
+          working-directory: backend
+
+      - name: Sync dependencies
+        working-directory: backend
+        run: uv sync --locked --group dev
+
+      - name: Ruff check
+        working-directory: backend
+        run: uv run ruff check .
+
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          python-version: "3.12"
+          working-directory: backend
+
+      - name: Sync dependencies
+        working-directory: backend
+        run: uv sync --locked --group dev
+
+      - name: Run tests
+        working-directory: backend
+        run: uv run pytest -q
