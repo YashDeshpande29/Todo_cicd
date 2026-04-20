@@ -13,6 +13,7 @@ app.add_middleware(
 )
 
 
+
 class TodoCreate(BaseModel):
     title: str = Field(min_length=1, max_length=500)
 
@@ -21,8 +22,6 @@ class TodoUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=500)
     done: bool | None = None
     
-class TodoResponse(BaseModel):
-    data: Todo
 
 
 class Todo(BaseModel):
@@ -30,6 +29,8 @@ class Todo(BaseModel):
     title: str
     done: bool
 
+class TodoResponse(BaseModel):
+    data: list[Todo]
 
 _todos: list[Todo] = []
 _next_id = 1
@@ -76,4 +77,3 @@ def delete_todo(todo_id: int):
             _todos.pop(i)
             return
     raise HTTPException(status_code=404, detail="Todo not found")
-    
