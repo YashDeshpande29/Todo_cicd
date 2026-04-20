@@ -29,8 +29,6 @@ class Todo(BaseModel):
     title: str
     done: bool
 
-class TodoResponse(BaseModel):
-    data: list[Todo]
 
 _todos: list[Todo] = []
 _next_id = 1
@@ -41,21 +39,21 @@ def health():
     return {"status": "ok"}
 
 
-@app.get("/todos", response_model=list[TodoResponse])
+@app.get("/todos", response_model=list[Todo])
 def list_todos():
     return list(_todos)
 
 
-@app.post("/todos", response_model=TodoResponse, status_code=201)
+@app.post("/todos", response_model=Todo, status_code=201)
 def create_todo(body: TodoCreate):
     global _next_id
     todo = Todo(id=_next_id, title=body.title.strip(), done=False)
     _next_id += 1
     _todos.append(todo)
-    return TodoResponse(data=todo)
+    return todo
 
 
-@app.patch("/todos/{todo_id}", response_model=TodoResponse)
+@app.patch("/todos/{todo_id}", response_model=Todo)
 def update_todo(todo_id: int, body: TodoUpdate):
     for i, t in enumerate(_todos):
         if t.id == todo_id:
@@ -66,7 +64,7 @@ def update_todo(todo_id: int, body: TodoUpdate):
                 data["done"] = body.done
             updated = Todo(**data)
             _todos[i] = updated
-            return TodoResponse(data=updated)       
+            return updated
     raise HTTPException(status_code=404, detail="Todo not found")
 
 
